@@ -5,6 +5,38 @@ Gyódi, Kristóf, & Nawaro, Łukasz. (2021).
 Determinants of Airbnb prices in European cities:
 A spatial econometrics approach (Supplementary Material)
 [Data set]. Zenodo. https://doi.org/10.5281/zenodo.4446043
+
+https://www.sciencedirect.com/science/article/pii/S0261517721000388?via%3Dihub
+"""
+
+"""
+chosen dataset:
+    either one city or all cities
+    hypothesis: price is more dependant on spatial features than quality of an Airbnb
+    goal: price as target for regression prediction
+    >>> features:
+        dist, metro_dist, rest_index, attr_index, (city?), [spatial features]
+        cleanliness, satisfaction, weekend, [quality features]
+        host_is_superhost, room_type, person_capacity [basic features]
+    method:
+        data pre-processing as a whole group
+        split up into two teams: 
+        one group predicts based on spatial and base features, the other group based on quality and base features
+        compare: which types of features are stronger indicators for the pricing?
+    project schedule: 
+        duration: 2.5 months (10 weeks) (beginning of April - mid june)
+        2 - 3 weeks pre-processing
+        6 weeks predict - compare - iterate
+        1 week prepare final presentation
+    pitch:
+        present datasets (regression namedropping) (Nico)
+        explain why features and targets were chosen (Jakob)
+        explain our hypothesis and method of prediction based on two types of feature categories (Marlis)
+        tentative schedule (Lorenz)
+    request feedback:
+        either one city or all cities?
+        all room_types or just the two most common?
+        how to throw longitude/latitude into the mix
 """
 
 ########################################################################################################################
