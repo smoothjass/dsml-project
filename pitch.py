@@ -245,7 +245,37 @@ plot4.legend.border_line_width = 3
 plot4.legend.border_line_color = 'black'
 plot4.margin = 10
 
+########################################################################################################################
+# PIE CHART CLEANLINESS - DISTANCE
+
+dsmall = all_cities.where(all_cities['dist'] < 3)
+clgood = all_cities.where(all_cities['cleanliness_rating'] >= 9)
+dsmallprice = dsmall[dsmall['realSum'] >= 2000]
+clgoodprice = clgood[clgood['realSum'] >= 2000]
+
+dat = {
+    'distance to city center < 3 km': len(dsmallprice),
+    'cleanliness rating >= 9 stars': len(clgoodprice)
+}
+
+data = pd.Series(dat).reset_index(name='value').rename(columns={'index': 'feature'})
+data['angle'] = data['value'] / data['value'].sum() * 2 * pi
+data['color'] = 'green', 'orange'
+
+plot5 = figure(height=400, title='Number of high priced Airbnbs (>1000 EUR/night)', toolbar_location=None, # > 2000 EUR for 2 nights
+               tools='hover', tooltips='@feature: @value', x_range=(-0.5, 1.0))
+
+plot5.wedge(x=0, y=1, radius=0.4,
+            start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+            line_color='white', fill_color='color', legend_field='feature', source=data)
+
+plot5.axis.axis_label = None
+plot5.axis.visible = False
+plot5.grid.grid_line_color = None
+
+plot5.margin = 10
+
 # show the results
-show(layout([plot1, plot3, plot2], [plot4]))
+show(layout([plot1, plot3, plot2], [plot4, plot5]))
 
 # i am writing a long comment and wanna see to which repository this is being pushed
