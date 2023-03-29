@@ -44,12 +44,14 @@ chosen dataset:
 import pandas as pd
 from math import pi
 
-from bokeh.models import LinearAxis
-from bokeh.palettes import Category20c
+from bokeh.models import LinearAxis, ColorBar, ColorMapper, LinearColorMapper, TileSource
+from bokeh.palettes import Category20c, mpl
 from bokeh.plotting import figure, show
-from bokeh.transform import cumsum
+from bokeh.transform import cumsum, linear_cmap
 from bokeh.layouts import row, layout
 from bokeh.io import output_file
+import math
+from bokeh.models.tiles import WMTSTileSource
 
 ########################################################################################################################
 # ARRANGE DFS
@@ -301,8 +303,38 @@ plot6.legend.border_line_width = 3
 plot6.legend.border_line_color = 'black'
 plot6.margin = 10
 
+########################################################################################################################
+# MAP WITH AIRBNB LOCATIONS IN VIENNA + PRICE COLOR SCALE
+
+# helper functions to convert lat/long to mercator coordinates
+def mercator_y(a):
+    return math.log(math.tan(math.pi / 4 + math.radians(a) / 2)) * 6378137.0
+
+def mercator_x(a):
+    return math.radians(a) * 6378137.0
+
+
+# configure data source for map
+tile_source = WMTSTileSource(
+    url='https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{@2x}.png'
+)
+
+plot7 = figure(x_range=(1812587, 1832587), y_range=(6131582, 6151582),
+               x_axis_type="mercator", y_axis_type="mercator", height=600, width=700)
+plot7.add_tile(tile_source)
+
+color_mapper123 = LinearColorMapper(palette=['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#a50f15','#67000d'], low=70, high=400)
+vienna['mercator_x'] = vienna['lng'].apply(lambda lng: mercator_x(lng))
+vienna['mercator_y'] = vienna['lat'].apply(lambda lat: mercator_y(lat))
+plot7.circle(x='mercator_x', y='mercator_y', source=vienna, size=5, fill_color={'field': 'realSum', 'transform': color_mapper123}, alpha=0.5, line_color=None)
+color_bar = ColorBar(color_mapper=color_mapper123, location=(0,0))
+plot7.add_layout(color_bar, 'right')
+plot7.xaxis.axis_label = 'longitude'
+plot7.yaxis.axis_label = 'latitude'
+plot7.margin = 10
+
 # show the results
 output_file('charts.html')
-show(layout([plot1, plot3, plot2], [plot4, plot5, plot6]))
+show(layout([plot1, plot3, plot2], [plot4, plot5, plot6], [plot7]))
 
 # i am writing a long comment and wanna see to which repository this is being pushed
