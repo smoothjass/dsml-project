@@ -49,6 +49,7 @@ from bokeh.palettes import Category20c
 from bokeh.plotting import figure, show
 from bokeh.transform import cumsum
 from bokeh.layouts import row, layout
+from bokeh.io import output_file
 
 ########################################################################################################################
 # ARRANGE DFS
@@ -276,6 +277,7 @@ plot5.grid.grid_line_color = None
 plot5.margin = 10
 
 # show the results
+output_file('charts.html')
 show(layout([plot1, plot3, plot2], [plot4, plot5]))
 
 # i am writing a long comment and wanna see to which repository this is being pushed
