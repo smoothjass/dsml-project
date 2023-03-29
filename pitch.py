@@ -248,7 +248,7 @@ plot4.margin = 10
 
 ########################################################################################################################
 # PIE CHART CLEANLINESS - DISTANCE
-
+"""
 dsmall = all_cities.where(all_cities['dist'] < 3)
 clgood = all_cities.where(all_cities['cleanliness_rating'] >= 9)
 dsmallprice = dsmall[dsmall['realSum'] >= 2000]
@@ -275,9 +275,34 @@ plot5.axis.visible = False
 plot5.grid.grid_line_color = None
 
 plot5.margin = 10
+"""
+# SCATTER PLOTS CLEANLINESS/DISTANCE - PRICES
+plot5 = figure(width=800, height=800)
+plot6 = figure(width=800, height=800)
+
+
+plot5.circle(all_cities['dist'], all_cities['realSum'],
+             size=2, color='purple', alpha=0.5, legend_label='distance to city center')
+
+plot6.circle(all_cities['cleanliness_rating'], all_cities['realSum'],
+             size=2, color='green', alpha=0.5, legend_label='cleanliness rating')
+
+plot5.yaxis.axis_label = 'price (EUR)'
+plot5.xaxis.axis_label = 'distance (km)'
+plot5.legend.location = 'top_right'
+plot5.legend.border_line_width = 3
+plot5.legend.border_line_color = 'black'
+plot5.margin = 10
+
+plot6.yaxis.axis_label = 'price (EUR)'
+plot6.xaxis.axis_label = 'rating (stars)'
+plot6.legend.location = 'top_right'
+plot6.legend.border_line_width = 3
+plot6.legend.border_line_color = 'black'
+plot6.margin = 10
 
 # show the results
 output_file('charts.html')
-show(layout([plot1, plot3, plot2], [plot4, plot5]))
+show(layout([plot1, plot3, plot2], [plot4, plot5, plot6]))
 
 # i am writing a long comment and wanna see to which repository this is being pushed
