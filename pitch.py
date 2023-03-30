@@ -37,6 +37,17 @@ chosen dataset:
         either one city or all cities?
         all room_types or just the two most common?
         how to throw longitude/latitude into the mix
+        
+    feedback:
+        splitting of features makes sense -> yay
+        try different combinations: each of the three categories solo, each combination, drop single features
+        compare and check effect on accuracy
+        focus on Vienna
+        longitude/latitude works better if we concentrate on 1 city -> yay
+        important finding: find out which feature(s) are relevant
+        do:
+            df.describe and other useful functions of pandas dataframes
+            boxplot of each numerical feature
 """
 
 ########################################################################################################################
