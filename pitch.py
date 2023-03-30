@@ -44,11 +44,14 @@ chosen dataset:
 import pandas as pd
 from math import pi
 
-from bokeh.models import LinearAxis
-from bokeh.palettes import Category20c
+from bokeh.models import LinearAxis, ColorBar, ColorMapper, LinearColorMapper, TileSource
+from bokeh.palettes import Category20c, mpl
 from bokeh.plotting import figure, show
-from bokeh.transform import cumsum
+from bokeh.transform import cumsum, linear_cmap
 from bokeh.layouts import row, layout
+from bokeh.io import output_file
+import math
+from bokeh.models.tiles import WMTSTileSource
 
 ########################################################################################################################
 # ARRANGE DFS
@@ -245,7 +248,93 @@ plot4.legend.border_line_width = 3
 plot4.legend.border_line_color = 'black'
 plot4.margin = 10
 
+########################################################################################################################
+# PIE CHART CLEANLINESS - DISTANCE
+"""
+dsmall = all_cities.where(all_cities['dist'] < 3)
+clgood = all_cities.where(all_cities['cleanliness_rating'] >= 9)
+dsmallprice = dsmall[dsmall['realSum'] >= 2000]
+clgoodprice = clgood[clgood['realSum'] >= 2000]
+
+dat = {
+    'distance to city center < 3 km': len(dsmallprice),
+    'cleanliness rating >= 9 stars': len(clgoodprice)
+}
+
+data = pd.Series(dat).reset_index(name='value').rename(columns={'index': 'feature'})
+data['angle'] = data['value'] / data['value'].sum() * 2 * pi
+data['color'] = 'green', 'orange'
+
+plot5 = figure(height=400, title='Number of high priced Airbnbs (>1000 EUR/night)', toolbar_location=None, # > 2000 EUR for 2 nights
+               tools='hover', tooltips='@feature: @value', x_range=(-0.5, 1.0))
+
+plot5.wedge(x=0, y=1, radius=0.4,
+            start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+            line_color='white', fill_color='color', legend_field='feature', source=data)
+
+plot5.axis.axis_label = None
+plot5.axis.visible = False
+plot5.grid.grid_line_color = None
+
+plot5.margin = 10
+"""
+# SCATTER PLOTS CLEANLINESS/DISTANCE - PRICES
+plot5 = figure(width=800, height=800)
+plot6 = figure(width=800, height=800)
+
+
+plot5.circle(all_cities['dist'], all_cities['realSum'],
+             size=2, color='purple', alpha=0.5, legend_label='distance to city center')
+
+plot6.circle(all_cities['cleanliness_rating'], all_cities['realSum'],
+             size=2, color='green', alpha=0.5, legend_label='cleanliness rating')
+
+plot5.yaxis.axis_label = 'price (EUR)'
+plot5.xaxis.axis_label = 'distance (km)'
+plot5.legend.location = 'top_right'
+plot5.legend.border_line_width = 3
+plot5.legend.border_line_color = 'black'
+plot5.margin = 10
+
+plot6.yaxis.axis_label = 'price (EUR)'
+plot6.xaxis.axis_label = 'rating (stars)'
+plot6.legend.location = 'top_right'
+plot6.legend.border_line_width = 3
+plot6.legend.border_line_color = 'black'
+plot6.margin = 10
+
+########################################################################################################################
+# MAP WITH AIRBNB LOCATIONS IN VIENNA + PRICE COLOR SCALE
+
+# helper functions to convert lat/long to mercator coordinates
+def mercator_y(a):
+    return math.log(math.tan(math.pi / 4 + math.radians(a) / 2)) * 6378137.0
+
+def mercator_x(a):
+    return math.radians(a) * 6378137.0
+
+
+# configure data source for map
+tile_source = WMTSTileSource(
+    url='https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{@2x}.png'
+)
+
+plot7 = figure(x_range=(1812587, 1832587), y_range=(6131582, 6151582),
+               x_axis_type="mercator", y_axis_type="mercator", height=600, width=700)
+plot7.add_tile(tile_source)
+
+color_mapper123 = LinearColorMapper(palette=['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#a50f15','#67000d'], low=70, high=400)
+vienna['mercator_x'] = vienna['lng'].apply(lambda lng: mercator_x(lng))
+vienna['mercator_y'] = vienna['lat'].apply(lambda lat: mercator_y(lat))
+plot7.circle(x='mercator_x', y='mercator_y', source=vienna, size=5, fill_color={'field': 'realSum', 'transform': color_mapper123}, alpha=0.5, line_color=None)
+color_bar = ColorBar(color_mapper=color_mapper123, location=(0,0))
+plot7.add_layout(color_bar, 'right')
+plot7.xaxis.axis_label = 'longitude'
+plot7.yaxis.axis_label = 'latitude'
+plot7.margin = 10
+
 # show the results
-show(layout([plot1, plot3, plot2], [plot4]))
+output_file('charts.html')
+show(layout([plot1, plot3, plot2], [plot4, plot5, plot6], [plot7]))
 
 # i am writing a long comment and wanna see to which repository this is being pushed
