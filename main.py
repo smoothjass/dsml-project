@@ -1,7 +1,9 @@
 import acquisition.acquisition as acq
 import exploration.exploration as exp
 import preprocessing.preprocessing as pre
-import model as model
+import model.kNN as kNN
+
+from sklearn.model_selection import train_test_split
 
 # get the data from the .csv files (combines weekend and weekday data)
 vienna = acq.get_vienna_data()
