@@ -6,7 +6,7 @@ import exploration.exploration as exp
 import preprocessing.preprocessing as pre
 # import model.kNN as kNN
 # import model.decisionTree as tree
-# import model.neuralnetwork as nn
+import model.neuralnetwork as nn
 # other libraries
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error
@@ -45,16 +45,16 @@ y = vienna['realSum']  # .to_numpy()
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
 
 # step 5 fit models using training set + hyperparameter tuning including cross validation with random-/gridsearch
-# todo for each model: a function which takes training set (X and y) as input, performs fit and hyperparameter tuning
-#  with cross validation, stores best model for future use and returns y_hat
-'''
-y_hat_tree = 
-y_hat_knn = 
-y_hat_lin_regr = 
-y_hat_nn = 
-predictions = [y_hat_tree, y_hat_knn, y_hat_lin_regr, y_hat_nn] 
-'''
-y_hats = [y_test, y_test, y_test, y_test]
+# todo for each model: a function which takes training set (X and y) and X_test as input, performs fit and
+#  hyperparameter tuning with cross validation, stores best model for future use and returns y_hat
+print("fitting")
+#y_hat_tree =
+#y_hat_knn =
+#y_hat_lin_regr =
+y_hat_nn = nn.fitAndTune(X_train, y_train, X_test)
+#predictions = [y_hat_tree, y_hat_knn, y_hat_lin_regr, y_hat_nn]
+
+y_hats = [y_test, y_test, y_test, y_hat_nn]
 models = ['tree', 'knn', 'lin_regr', 'nn']
 dictionary = {'model': models,
               'y_hat': y_hats}
