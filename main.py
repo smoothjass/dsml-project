@@ -45,8 +45,8 @@ y = vienna['realSum']  # .to_numpy()
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
 
 # step 5 fit models using training set + hyperparameter tuning including cross validation with random-/gridsearch
-# todo for each model: a function which takes training set as input, performs fit and hyperparameter tuning with
-#  cross validation, stores best model for future use and returns y_hat
+# todo for each model: a function which takes training set (X and y) as input, performs fit and hyperparameter tuning
+#  with cross validation, stores best model for future use and returns y_hat
 '''
 y_hat_tree = 
 y_hat_knn = 
