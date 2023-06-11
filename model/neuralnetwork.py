@@ -20,19 +20,25 @@ Class MLPRegressor implements a multi-layer perceptron (MLP) that trains using b
 function in the output layer, which can also be seen as using the identity function as activation function.
 Therefore, it uses the square error as the loss function, and the output is a set of continuous values.
 
+
 https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html
 
 Randomized search on hyper parameters.
 The parameters of the estimator used to apply these methods are optimized by cross-validated search over parameter 
 settings.
 In contrast to GridSearchCV, not all parameter values are tried out, but rather a fixed number of parameter settings 
-is sampled from the specified distributions. The number of parameter settings that are tried is given by n_iter."""
+is sampled from the specified distributions. The number of parameter settings that are tried is given by n_iter.
 
+
+https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
+
+Exhaustive search over specified parameter values for an estimator. The parameters of the estimator used to apply 
+these methods are optimized by cross-validated grid-search over a parameter grid."""
 
 ########################################################################################################################
 
 ########################################################################################################################
-# IMPLEMENTATION
+# HYPERPARAMETER TUNING
 def fitAndTuneRandomized(X_train, y_train, X_test):
     # Define the parameter grid for RandomizedSearchCV
     param_grid = {
@@ -97,6 +103,7 @@ def fitAndTuneGrid(X_train, y_train, X_test):
 
     return y_hat
 
+
 # once the number 13 was found as the best hidden layer size, we tried tuning the other parameters but the
 # improvement was not significant
 def fitAndTuneActivationAndAlpha(X_train, y_train, X_test):
@@ -129,8 +136,9 @@ def fitAndTuneActivationAndAlpha(X_train, y_train, X_test):
 
 
 def predict(X_train, y_train, X_test):
-    model_all = MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(13,), activation='relu',
-                         alpha=0.0001)
+    model_all = MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(13,),
+                             activation='relu',
+                             alpha=0.0001)
 
     # Fit the model to the training data
     model_all.fit(X_train, y_train)
@@ -139,7 +147,12 @@ def predict(X_train, y_train, X_test):
     y_hat = model_all.predict(X_test)
 
     return y_hat
+
+
 ########################################################################################################################
+
+########################################################################################################################
+# RESULTS OF TUNING
 
 # Best Hyperparameters:  {'hidden_layer_sizes': (13,), 'alpha': 0.0001, 'activation': 'relu'} for all
 # Best Hyperparameters:  {'hidden_layer_sizes': (13,), 'alpha': 0.0001, 'activation': 'relu'} for spatial
@@ -147,3 +160,25 @@ def predict(X_train, y_train, X_test):
 # Best Hyperparameters:  {'hidden_layer_sizes': (14,), 'alpha': 0.0001, 'activation': 'relu'} for basic
 # Best Hyperparameters:  {'hidden_layer_sizes': (12,), 'alpha': 0.01, 'activation': 'relu'} for spatial and basic
 # Best Hyperparameters:  {'hidden_layer_sizes': (10,), 'alpha': 0.001, 'activation': 'relu'} for quality and basic
+
+def getBestModel(featureGroup):
+    if featureGroup == "all":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(13,), activation='relu',
+                            alpha=0.0001)
+    elif featureGroup == "spatial":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(13,), activation='relu',
+                            alpha=0.0001)
+    elif featureGroup == "quality":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(7,), activation='relu',
+                            alpha=0.0001)
+    elif featureGroup == "basic":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(14,), activation='relu',
+                            alpha=0.0001)
+    elif featureGroup == "spatial_and_basic":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(12,), activation='relu',
+                            alpha=0.01)
+    elif featureGroup == "quality_and_basic":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(10,), activation='relu',
+                            alpha=0.001)
+    else:
+        return None
