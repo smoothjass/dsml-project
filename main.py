@@ -24,13 +24,13 @@ def calculateErrors(y_test, y_hat):
 
 
 def fitAndTune(X_train, y_train, X_test, features):
-    # y_hat_tree =
-    # y_hat_knn =
-    # y_hat_lin_regr =
-    # y_hat_nn = nn.fitAndTuneRandomized(X_train, y_train, X_test)
-    y_hat_nn = nn.predict(X_train, y_train, X_test)
+    # we'll just put y_hat in there for now because we don't have the other models yet
+    y_hat_tree = y_test
+    y_hat_knn = y_test
+    y_hat_lin_regr = y_test
+    y_hat_nn = nn.fitAndTuneRandomized(X_train, y_train, X_test)
 
-    y_hats = [y_test, y_test, y_test, y_hat_nn]
+    y_hats = [y_hat_tree, y_hat_knn, y_hat_lin_regr, y_hat_nn]
     models = ['tree', 'knn', 'lin_regr', 'nn']
     feature_group = [features, features, features, features]
     dictionary = {'model': models,
@@ -78,11 +78,12 @@ X_quality_and_basic = pd.concat([X_quality, X_basic], axis=1)
 X_train_quality_and_basic, X_test_quality_and_basic, y_train_quality_and_basic, y_test_quality_and_basic = \
     train_test_split(X_quality_and_basic, y, random_state=42)
 
-# step 5 fit models using training set + hyperparameter tuning including cross validation with random-/gridsearch
-# todo - for each model: a function which takes training set (X and y) and X_test as input, performs fit and
-#  hyperparameter tuning with cross validation, stores best model for future use and returns y_hat
-# todo - try each model with different feature combinations
-predictions_all = fitAndTune(X_train, y_train, X_test, 'all')
+# step 5 fit models using training set + hyperparameter tuning including cross validation with random-/gridsearch for
+# each model and feature combination: fit and tune hyperparameters, use 5-fold cross validation, return y_hat of the
+# best model try each model with different feature combinations this is in a comment block because it is the step
+# which takes a lot of time and resources. We did this before and hardcoded the best models in the getBestModel per
+# featureGroup functions
+"""predictions_all = fitAndTune(X_train, y_train, X_test, 'all')
 predictions_spatial = fitAndTune(X_train_spatial, y_train_spatial, X_test_spatial, 'spatial')
 predictions_quality = fitAndTune(X_train_quality, y_train_quality, X_test_quality, 'quality')
 predictions_basic = fitAndTune(X_train_basic, y_train_basic, X_test_basic, 'basic')
@@ -91,18 +92,66 @@ predictions_spatial_and_basic = fitAndTune(X_train_spatial_and_basic, y_train_sp
 predictions_quality_and_basic = fitAndTune(X_train_quality_and_basic, y_train_quality_and_basic,
                                            X_test_quality_and_basic, 'quality_and_basic')
 predictions = [predictions_all, predictions_spatial, predictions_quality, predictions_basic,
-                predictions_spatial_and_basic, predictions_quality_and_basic]
+                predictions_spatial_and_basic, predictions_quality_and_basic]"""
 
 # step 6
-# performance evaluation with test set
-evaluations = pd.DataFrame()
-for df in predictions:
-    evaluation = []
-    for index, row in df.iterrows():
-        mae, rmse, medae = calculateErrors(y_test, row['y_hat'])
-        evaluation.append([row['model'], row['features'], mae, rmse, medae])
-    evaluation = pd.DataFrame(evaluation, columns=["model", "features", "mae", "rmse", "medae"])
-    evaluations = pd.concat([evaluations, evaluation], axis=0)
+# get all the best models
+nn_models = [[nn.getBestModel("all"), X_train, y_train, X_test],
+             [nn.getBestModel("spatial"), X_train_spatial, y_train_spatial, X_test_spatial],
+             [nn.getBestModel("quality"), X_train_quality, y_train_quality, X_test_quality],
+             [nn.getBestModel("basic"), X_train_basic, y_train_basic, X_test_basic],
+             [nn.getBestModel("spatial_and_basic"), X_train_spatial_and_basic, y_train_spatial_and_basic,
+              X_test_spatial_and_basic],
+             [nn.getBestModel("quality_and_basic"), X_train_quality_and_basic, y_train_quality_and_basic,
+              X_test_quality_and_basic]]
+"""tree_models = [tree.getBestModel("all"), 
+               tree.getBestModel("spatial"), 
+               tree.getBestModel("quality"), 
+               tree.getBestModel("basic"), 
+               tree.getBestModel("spatial_and_basic"), 
+               tree.getBestModel("quality_and_basic")]
+knn_models = [knn.getBestModel("all"), 
+              knn.getBestModel("spatial"), 
+              knn.getBestModel("quality"), 
+              knn.getBestModel("basic"), 
+              knn.getBestModel("spatial_and_basic"), 
+              knn.getBestModel("quality_and_basic")]
+lin_regr_models = [lin_regr.getBestModel("all"), 
+                   lin_regr.getBestModel("spatial"), 
+                   lin_regr.getBestModel("quality"), 
+                   lin_regr.getBestModel("basic"), 
+                   lin_regr.getBestModel("spatial_and_basic"), 
+                   lin_regr.getBestModel("quality_and_basic")]"""
+models = [nn_models]  # , tree_models, knn_models, lin_regr_models]
+# collect all the predictions
+predictions = pd.DataFrame()
+for model in models:
+    y_hats = []
+    algorithm = model[0][0].__class__.__name__
+    algorithms = [algorithm, algorithm, algorithm, algorithm, algorithm, algorithm]
+    features = ["all", "spatial", "quality", "basic", "spatial_and_basic", "quality_and_basic"]
+    for m in model:
+        m[0].fit(m[1], m[2])
+        y_hat = m[0].predict(m[3])
+        y_hats.append(y_hat)
+    dictionary = {'model': algorithms,
+                  'features': features,
+                  'y_hat': y_hats}
+    prediction = pd.DataFrame(dictionary)
+    predictions = pd.concat([predictions, prediction], axis=0)
+
 
 # step 7
+# performance evaluation with test set
+evaluations = []
+for index, row in predictions.iterrows():
+    mae, rmse, medae = calculateErrors(y_test, row['y_hat'])
+    evaluations.append([row['model'], row['features'], mae, rmse, medae])
+evaluations = pd.DataFrame(evaluations, columns=["model", "features", "mae", "rmse", "medae"])
+
+# step 8
+# permutation importance - evaluate to which extent features contribute to the score
+
+
+# step 9
 # summarize results
