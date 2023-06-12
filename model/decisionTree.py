@@ -14,18 +14,18 @@ import exploration.exploration as exp
 
 # step 1
 # get the labeled data from the .csv files (combines weekend and weekday data)
-vienna = acq.get_vienna_data()
+# vienna = acq.get_vienna_data()
 
 # step 2
 # explore the data (plots etc.) and clean it
 # (remove outliers, check class imbalance, check encoding, dimensionality reduction of unnecessary columns)
-vienna = exp.explore_and_clean(vienna)
+# vienna = exp.explore_and_clean(vienna)
 
 # step 3
 # preprocess the data (normalize, scale)
-vienna = pre.preprocess_data(vienna)
+# vienna = pre.preprocess_data(vienna)
 
-df = vienna.copy()
+# df = vienna.copy()
 
 # all columns except 'realSum' are features
 # X = df.drop(columns=['realSum'])
