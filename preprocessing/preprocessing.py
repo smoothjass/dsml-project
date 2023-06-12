@@ -1,9 +1,12 @@
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 
 
 def preprocess_data(city_data):
     # we use a MinMaxScaler to scale the data to the range [0,1]
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
+    # trying the standard scaler for faster convergence
+    scaler = StandardScaler()
 
     # scale all columns except the target column 'realSum' and boolean columns
     columns_to_scale = ['person_capacity', 'cleanliness_rating', 'guest_satisfaction_overall', 'bedrooms', 'dist',

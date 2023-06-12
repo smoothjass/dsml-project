@@ -1,19 +1,8 @@
 ########################################################################################################################
 # IMPORTS
-import random
-
-import numpy as np
-import sklearn
 from sklearn.neural_network import MLPRegressor
-import pandas as pd
-from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error
-import math
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
-import sys
-
-# temporary
-from sklearn.model_selection import train_test_split
-import exploration.exploration as exp
 
 ########################################################################################################################
 
@@ -27,107 +16,167 @@ where is the number of dimensions for input and is the number of dimensions for 
 target , it can learn a non-linear function approximator for either classification or regression. It is different
 from logistic regression, in that between the input and the output layer, there can be one or more non-linear layers,
 called hidden layers.
-
 Class MLPRegressor implements a multi-layer perceptron (MLP) that trains using backpropagation with no activation
 function in the output layer, which can also be seen as using the identity function as activation function.
 Therefore, it uses the square error as the loss function, and the output is a set of continuous values.
 
-MLPRegressor also supports multi-output regression, in which a sample can have more than one target.
 
-Algorithms: MLP trains using Stochastic Gradient Descent, Adam, or L-BFGS.
-"""
+https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html
 
+Randomized search on hyper parameters.
+The parameters of the estimator used to apply these methods are optimized by cross-validated search over parameter 
+settings.
+In contrast to GridSearchCV, not all parameter values are tried out, but rather a fixed number of parameter settings 
+is sampled from the specified distributions. The number of parameter settings that are tried is given by n_iter.
+
+
+https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html
+
+Exhaustive search over specified parameter values for an estimator. The parameters of the estimator used to apply 
+these methods are optimized by cross-validated grid-search over a parameter grid."""
 
 ########################################################################################################################
 
 ########################################################################################################################
-# IMPLEMENTATION
+# HYPERPARAMETER TUNING
+def fitAndTuneRandomized(X_train, y_train, X_test):
+    # Define the parameter grid for RandomizedSearchCV
+    param_grid = {
+        'hidden_layer_sizes': [(1,), (2,), (3,), (4,), (5,), (6,), (7,), (8,), (9,), (10,),
+                               (11,), (12,), (13,), (14,), (15,)],
+        # Specify different hidden layer sizes
+        'activation': ['relu', 'tanh'],  # Activation functions to try
+        'alpha': [0.0001, 0.001, 0.01]  # Regularization parameter
+    }
+    # Create the MLPRegressor model
+    # lbfgs converges faster
+    model = MLPRegressor(random_state=42, max_iter=2000, solver='lbfgs')
 
-# temporary
-def get_vienna_data():
-    vienna_weekdays = pd.read_csv('../datasets/vienna_weekdays.csv', sep=',')
-    vienna_weekdays['weekend'] = False
-    vienna_weekend = pd.read_csv('../datasets/vienna_weekends.csv', sep=',')
-    vienna_weekend['weekend'] = True
-    vienna = pd.concat([vienna_weekend, vienna_weekdays], ignore_index=True, sort=False)
-    return vienna
+    # Create the RandomizedSearchCV object
+    # default 5-fold cross validation with shuffle_False
+    random_search = RandomizedSearchCV(model, param_grid, verbose=3, n_iter=50)
+
+    # Fit the RandomizedSearchCV object to the training data
+    random_search.fit(X_train, y_train)
+
+    # Print the best hyperparameters found
+    print("Best Hyperparameters: ", random_search.best_params_)
+
+    # Get the best model found by RandomizedSearchCV
+    best_model = random_search.best_estimator_
+
+    # Predict y_hat using the best model
+    y_hat = best_model.predict(X_test)
+
+    return y_hat
 
 
-def calculateErrors(y_test, y_hat):
-    mae = mean_absolute_error(y_test, y_hat)
-    rmse = math.sqrt(mean_squared_error(y_test, y_hat))
-    medae = median_absolute_error(y_test, y_hat)
-    return mae, rmse, medae
+def fitAndTuneGrid(X_train, y_train, X_test):
+    # Define the parameter grid for GridSearchCV
+    param_grid = {
+        'hidden_layer_sizes': [(1,), (2,), (3,), (4,), (5,), (6,), (7,), (8,), (9,), (10,),
+                               (11,), (12,), (13,), (14,), (15,)],
+        # Specify different hidden layer sizes
+        'activation': ['relu', 'tanh'],  # Activation functions to try
+        'alpha': [0.0001, 0.001, 0.01]  # Regularization parameter
+    }
+    # Create the MLPRegressor model
+    # lbfgs converges faster
+    model = MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs')
+
+    # Create the RandomizedSearchCV object
+    # default 5-fold cross validation with shuffle_False
+    grid_search = GridSearchCV(model, param_grid, verbose=3)
+
+    # Fit the RandomizedSearchCV object to the training data
+    grid_search.fit(X_train, y_train)
+
+    # Print the best hyperparameters found
+    print("Best Hyperparameters: ", grid_search.best_params_)
+    # Best Hyperparameters: {'activation': 'relu', 'alpha': 0.0001, 'hidden_layer_sizes': (13,)}
+
+    # Get the best model found by RandomizedSearchCV
+    best_model = grid_search.best_estimator_
+
+    # Predict y_hat using the best model
+    y_hat = best_model.predict(X_test)
+
+    return y_hat
 
 
-data = get_vienna_data()
-data = exp.explore_and_clean(data)
+# once the number 13 was found as the best hidden layer size, we tried tuning the other parameters but the
+# improvement was not significant
+def fitAndTuneActivationAndAlpha(X_train, y_train, X_test):
+    # Define the parameter grid for GridSearchCV
+    param_grid = {
+        'activation': ['relu', 'tanh', 'logistic', 'identity'],  # Activation functions to try
+        'alpha': [0.00001, 0.0001, 0.001, 0.01, 0.1]  # Regularization parameter
+    }
+    # Create the MLPRegressor model
+    # lbfgs converges faster
+    model = MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(13,))
 
-X = data.drop(['realSum'], axis=1)  # .to_numpy()
-y = data['realSum']  # .to_numpy()
+    # Create the RandomizedSearchCV object
+    # default 5-fold cross validation with shuffle_False
+    grid_search = GridSearchCV(model, param_grid, verbose=3)
 
-# X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
+    # Fit the RandomizedSearchCV object to the training data
+    grid_search.fit(X_train, y_train)
 
-'''
-scikit learn neural network + gridsearch gives a looooot of warnings
-# Define the hyperparameter grid Create a dictionary where the keys represent the hyperparameters you want to tune,
-# and the values are the list of possible values for each hyperparameter.
-param_grid = {
-    'activation': ['identity', 'identity', 'tanh', 'relu'],
-    'solver': ['lbfgs', 'sgd', 'adam']#,
-    #'hidden_layer_sizes': [(1, 2, 3, 4, 5), (5, 4, 3, 2, 1), (2, 3, 2), (50, 50, 50)]
-}
-# create the regressor
-regr = MLPRegressor(random_state=1, max_iter=500)  # .fit(X_train, y_train)
-# perform grid search
-grid_search = GridSearchCV(regr, param_grid, cv=5, scoring='neg_mean_absolute_error', verbose=3)
-grid_search.fit(X_train, y_train)
-# Get the best parameters and best estimator
-best_params = grid_search.best_params_
-best_regressor = grid_search.best_estimator_
-# make predictions on the test set using the best estimator
-y_pred = best_regressor.predict(X_test)
-y_hat = regr.predict(X_test)
+    # Print the best hyperparameters found
+    print("Best Hyperparameters: ", grid_search.best_params_)
 
-mae_opt, rmse_opt, medae_opt = calculateErrors(y_test, y_pred)
-mae_default, rmse_default, medae_default = calculateErrors(y_test, y_hat)
-'''
+    # Get the best model found by RandomizedSearchCV
+    best_model = grid_search.best_estimator_
 
-# https://machinelearningmastery.com/grid-search-hyperparameters-deep-learning-models-python-keras/
-# chatGPT says
-from sklearn.neural_network import MLPRegressor
-from sklearn.model_selection import GridSearchCV
-from sklearn.datasets import make_regression
-from sklearn.model_selection import train_test_split
+    # Predict y_hat using the best model
+    y_hat = best_model.predict(X_test)
 
-# Generate some sample data
-#X, y = make_regression(n_samples=100, n_features=10, random_state=42)
+    return y_hat
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Define the parameter grid for GridSearchCV
-param_grid = {
-    'hidden_layer_sizes': [(10,), (20,), (30,)],  # Specify different hidden layer sizes
-    'activation': ['relu', 'tanh'],  # Activation functions to try
-    'alpha': [0.0001, 0.001, 0.01]  # Regularization parameter
-}
+def predict(X_train, y_train, X_test):
+    model_all = MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(13,),
+                             activation='relu',
+                             alpha=0.0001)
 
-# Create the MLPRegressor model
-model = MLPRegressor(random_state=42, max_iter=500)
+    # Fit the model to the training data
+    model_all.fit(X_train, y_train)
 
-# Create the GridSearchCV object
-grid_search = GridSearchCV(model, param_grid, cv=5, scoring='neg_root_mean_squared_error')
+    # Predict y_hat using the trained model
+    y_hat = model_all.predict(X_test)
 
-# Fit the GridSearchCV object to the training data
-grid_search.fit(X_train, y_train)
+    return y_hat
+########################################################################################################################
 
-# Print the best hyperparameters found
-print("Best Hyperparameters: ", grid_search.best_params_)
+########################################################################################################################
+# RESULTS OF TUNING
 
-# Get the best model found by GridSearchCV
-best_model = grid_search.best_estimator_
+# Best Hyperparameters:  {'hidden_layer_sizes': (13,), 'alpha': 0.0001, 'activation': 'relu'} for all
+# Best Hyperparameters:  {'hidden_layer_sizes': (13,), 'alpha': 0.0001, 'activation': 'relu'} for spatial
+# Best Hyperparameters:  {'hidden_layer_sizes': (7,), 'alpha': 0.0001, 'activation': 'relu'} for quality
+# Best Hyperparameters:  {'hidden_layer_sizes': (14,), 'alpha': 0.0001, 'activation': 'relu'} for basic
+# Best Hyperparameters:  {'hidden_layer_sizes': (12,), 'alpha': 0.01, 'activation': 'relu'} for spatial and basic
+# Best Hyperparameters:  {'hidden_layer_sizes': (10,), 'alpha': 0.001, 'activation': 'relu'} for quality and basic
 
-# Evaluate the best model on the test set
-rmse = math.sqrt(mean_squared_error(y_test, best_model.predict(X_test)))
-print("Best Model MSE: ", rmse)
+def getBestModel(featureGroup):
+    if featureGroup == "all":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(13,), activation='relu',
+                            alpha=0.0001)
+    elif featureGroup == "spatial":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(13,), activation='relu',
+                            alpha=0.0001)
+    elif featureGroup == "quality":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(7,), activation='relu',
+                            alpha=0.0001)
+    elif featureGroup == "basic":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(14,), activation='relu',
+                            alpha=0.0001)
+    elif featureGroup == "spatial_and_basic":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(12,), activation='relu',
+                            alpha=0.01)
+    elif featureGroup == "quality_and_basic":
+        return MLPRegressor(random_state=42, max_iter=3000, solver='lbfgs', hidden_layer_sizes=(10,), activation='relu',
+                            alpha=0.001)
+    else:
+        return None
