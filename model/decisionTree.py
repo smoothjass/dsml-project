@@ -371,10 +371,6 @@ def getBestModel(featureGroup):
     else:
         return None
 
-'''
-A
-
-'''
 
 
 
