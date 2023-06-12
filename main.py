@@ -1,5 +1,6 @@
 ########################################################################################################################
 # IMPORTS
+
 # our project files
 import acquisition.acquisition as acq
 import exploration.exploration as exp
@@ -7,6 +8,7 @@ import preprocessing.preprocessing as pre
 import model.kNN as knn
 # import model.decisionTree as tree
 import model.neuralnetwork as nn
+
 # other libraries
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error
@@ -17,6 +19,7 @@ import pandas as pd
 
 ########################################################################################################################
 def fitAndTune(X_train, y_train, X_test, features):
+    # todo anpassen
     # we'll just put y_hat in there for now because we don't have the other models yet
     y_hat_tree = y_test
     y_hat_knn = y_test
@@ -83,20 +86,27 @@ def calculatePermutationImportance(models):
 ########################################################################################################################
 # MACHINE LEARNING WORKFLOW
 
-# STEP 1
+# STEP 1 DATA ACQUISITION
 # get the labeled data from the .csv files (combines weekend and weekday data)
+# the data can be downloaded and read up on here:
+# https://www.kaggle.com/datasets/thedevastator/airbnb-prices-in-european-cities?select=vienna_weekdays.csv
+# https://www.kaggle.com/datasets/thedevastator/airbnb-prices-in-european-cities?select=vienna_weekends.csv
+# put these two csv files in a folder namend 'datasets' within the project folder in able to use acq.get_vienna_data()
 vienna = acq.get_vienna_data()
 
-# STEP 2
+# STEP 2 DATA EXPLORATION AND CLEANING
 # explore the data (plots etc.) and clean it
 # (remove outliers, check class imbalance, check encoding, dimensionality reduction of unnecessary columns)
 vienna = exp.explore_and_clean(vienna)
 
-# STEP 3
-# preprocess the data (normalize, scale)
+# STEP 3 DATA PREPROCESSING
+# preprocess the data (scale)
+# we tried standardScaler and MinMaxScaler
+# standardScaler performed better overall
 vienna = pre.preprocess_data(vienna)
 
-# STEP 4
+# STEP 4 MODEL BUILDING
+# STEP 4.1 splits
 # data splitting into training(, validation) and test sets for
 # all features
 # spatial features
@@ -104,6 +114,7 @@ vienna = pre.preprocess_data(vienna)
 # basic features
 # spatial and basic features
 # quality and basic features
+# as we use GridSearchCV or RandomSearchCV in the models training, we don't need to split off extra validation sets here
 X = vienna.drop(['realSum'], axis=1)  # .to_numpy()
 y = vienna['realSum']  # .to_numpy()
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
@@ -125,7 +136,7 @@ X_quality_and_basic = pd.concat([X_quality, X_basic], axis=1)
 X_train_quality_and_basic, X_test_quality_and_basic, y_train_quality_and_basic, y_test_quality_and_basic = \
     train_test_split(X_quality_and_basic, y, random_state=42)
 
-# STEP 5
+# STEP 4.2 hp tuning + cross validation for different feature groups
 # fit models using training set + hyperparameter tuning including cross validation with random-/gridsearch for
 # each model and feature combination: this is in a comment block because it is the step which takes a lot of time and
 # resources. We did this before and hardcoded the best models in the getBestModel per featureGroup functions
@@ -140,7 +151,7 @@ predictions_quality_and_basic = fitAndTune(X_train_quality_and_basic, y_train_qu
 predictions = [predictions_all, predictions_spatial, predictions_quality, predictions_basic,
                 predictions_spatial_and_basic, predictions_quality_and_basic]"""
 
-# STEP 6
+# STEP 4.3 make predictions for evaluation
 # get all the best models and predictions
 nn_models = [[nn.getBestModel("all"), X_train, y_train, X_test, y_test, "all"],
              [nn.getBestModel("spatial"), X_train_spatial, y_train_spatial, X_test_spatial, y_test_spatial, "spatial"],
@@ -150,6 +161,7 @@ nn_models = [[nn.getBestModel("all"), X_train, y_train, X_test, y_test, "all"],
               X_test_spatial_and_basic, y_test_spatial_and_basic, "spatial+basic"],
              [nn.getBestModel("quality_and_basic"), X_train_quality_and_basic, y_train_quality_and_basic,
               X_test_quality_and_basic, y_test_quality_and_basic, "quality+basic"]]
+# todo anpassen
 """tree_models = [[tree.getBestModel("all"), X_train, y_train, X_test, y_test, "all"],
              [tree.getBestModel("spatial"), X_train_spatial, y_train_spatial, X_test_spatial, y_test_spatial, "spatial"],
              [tree.getBestModel("quality"), X_train_quality, y_train_quality, X_test_quality, y_test_quality, "quality"],
@@ -166,6 +178,7 @@ knn_models = [[knn.getBestModel("all"), X_train, y_train, X_test, y_test, "all"]
               X_test_spatial_and_basic, y_test_spatial_and_basic, "spatial+basic"],
              [knn.getBestModel("quality_and_basic"), X_train_quality_and_basic, y_train_quality_and_basic,
               X_test_quality_and_basic, y_test_quality_and_basic, "quality+basic"]]
+# todo anpassen
 """lin_regr_models = [[nn.getBestModel("all"), X_train, y_train, X_test, y_test, "all"],
              [lin_regr.getBestModel("spatial"), X_train_spatial, y_train_spatial, X_test_spatial, y_test_spatial, "spatial"],
              [lin_regr.getBestModel("quality"), X_train_quality, y_train_quality, X_test_quality, y_test_quality, "quality"],
@@ -174,27 +187,41 @@ knn_models = [[knn.getBestModel("all"), X_train, y_train, X_test, y_test, "all"]
               X_test_spatial_and_basic, y_test_spatial_and_basic, "spatial+basic"],
              [lin_regr.getBestModel("quality_and_basic"), X_train_quality_and_basic, y_train_quality_and_basic,
               X_test_quality_and_basic, y_test_quality_and_basic, "quality+basic"]]"""
-models = [nn_models, knn_models]  # , tree_models, lin_regr_models]
+models = [nn_models, knn_models]  # , tree_models, lin_regr_models] # todo anpassen
 # collect all the predictions
 predictions = collectPredictions(models)
 
-# step 7
+# STEP 4.4 calculate error metrics
 # performance evaluation with test set
+# we calculate the mean absolute error (MAE), root mean squared error (RMSE) and median absolute error (MedAE) and
+# the score of the model (note! different score methods for different algorithms) and collect them in a dataframe
 evaluations = []
 for index, row in predictions.iterrows():
     mae, rmse, medae = calculateErrors(y_test, row['y_hat'])
     evaluations.append([row['model'], row['features'], mae, rmse, medae, row['score']])
     del mae, rmse, medae
 evaluations = pd.DataFrame(evaluations, columns=["model", "features", "mae", "rmse", "medae", "score"])
-# note that the algorithms have different score methods e.g. R^2 for MLPRegressor and accuracy for KNN
+# important that the algorithms have different score methods e.g. R^2 for MLPRegressor and accuracy for KNN
+# can be found in the scikit learn documentation of the algorithms
 
-# step 8
-# permutation importance - evaluate to which extent features contribute to the score
+# STEP 4.5 permutation importance
+# evaluate to which extent features contribute to the score
+# i.e. how much the score decreases when a single feature is shuffled
+# these results are also collected in a dataframe for comparison
 permutation_importance = calculatePermutationImportance(models)
 
-# step 9
+# STEP 5 INTERPRETATION AND DISCUSSION
 # summarize results
-# tidy up to see the results better in the SciView
+# todo summarize results
+# once the hp optimization is done, the best model can easily be trained on the data and deployed, however the hp tuning
+# and choosing of the algorithm are quite time consuming.
+# as we were able to predict the prices correctly within a range of roughly 10€ the model seems to be good enough from a
+# domain expert point of view, however none of us are domain experts.
+# from a societal point of view, this model could help avoid unfair increases in prices or unfair pricing compared to
+# competitors in general. It could also help people who are just getting started as hosts and don't know how to price
+# their bnb.
+
+# tidy up a bit to see the results better in the SciView
 del X_basic, X_spatial, X_quality, X_spatial_and_basic, X_quality_and_basic, \
     X_test_basic, X_test_spatial, X_test_quality, X_test_spatial_and_basic, X_test_quality_and_basic, \
     X_train_basic, X_train_spatial, X_train_quality, X_train_spatial_and_basic, X_train_quality_and_basic, \
