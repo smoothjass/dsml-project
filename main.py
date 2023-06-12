@@ -6,7 +6,7 @@ import acquisition.acquisition as acq
 import exploration.exploration as exp
 import preprocessing.preprocessing as pre
 import model.kNN as knn
-# import model.decisionTree as tree
+import model.decisionTree as tree
 import model.neuralnetwork as nn
 
 # other libraries
@@ -161,15 +161,14 @@ nn_models = [[nn.getBestModel("all"), X_train, y_train, X_test, y_test, "all"],
               X_test_spatial_and_basic, y_test_spatial_and_basic, "spatial+basic"],
              [nn.getBestModel("quality_and_basic"), X_train_quality_and_basic, y_train_quality_and_basic,
               X_test_quality_and_basic, y_test_quality_and_basic, "quality+basic"]]
-# todo anpassen
-"""tree_models = [[tree.getBestModel("all"), X_train, y_train, X_test, y_test, "all"],
+tree_models = [[tree.getBestModel("all"), X_train, y_train, X_test, y_test, "all"],
              [tree.getBestModel("spatial"), X_train_spatial, y_train_spatial, X_test_spatial, y_test_spatial, "spatial"],
              [tree.getBestModel("quality"), X_train_quality, y_train_quality, X_test_quality, y_test_quality, "quality"],
              [tree.getBestModel("basic"), X_train_basic, y_train_basic, X_test_basic, y_test_basic, "basic"],
              [tree.getBestModel("spatial_and_basic"), X_train_spatial_and_basic, y_train_spatial_and_basic,
               X_test_spatial_and_basic, y_test_spatial_and_basic, "spatial+basic"],
              [tree.getBestModel("quality_and_basic"), X_train_quality_and_basic, y_train_quality_and_basic,
-              X_test_quality_and_basic, y_test_quality_and_basic, "quality+basic"]]"""
+              X_test_quality_and_basic, y_test_quality_and_basic, "quality+basic"]]
 knn_models = [[knn.getBestModel("all"), X_train, y_train, X_test, y_test, "all"],
              [knn.getBestModel("spatial"), X_train_spatial, y_train_spatial, X_test_spatial, y_test_spatial, "spatial"],
              [knn.getBestModel("quality"), X_train_quality, y_train_quality, X_test_quality, y_test_quality, "quality"],
@@ -187,7 +186,7 @@ knn_models = [[knn.getBestModel("all"), X_train, y_train, X_test, y_test, "all"]
               X_test_spatial_and_basic, y_test_spatial_and_basic, "spatial+basic"],
              [lin_regr.getBestModel("quality_and_basic"), X_train_quality_and_basic, y_train_quality_and_basic,
               X_test_quality_and_basic, y_test_quality_and_basic, "quality+basic"]]"""
-models = [nn_models, knn_models]  # , tree_models, lin_regr_models] # todo anpassen
+models = [nn_models, knn_models, tree_models] # , lin_regr_models] # todo anpassen
 # collect all the predictions
 predictions = collectPredictions(models)
 
@@ -213,8 +212,10 @@ permutation_importance = calculatePermutationImportance(models)
 # STEP 5 INTERPRETATION AND DISCUSSION
 # summarize results
 # todo summarize results
+# the dataframes evaluations and permutation_importance contain the most significant summaries
+
 # once the hp optimization is done, the best model can easily be trained on the data and deployed, however the hp tuning
-# and choosing of the algorithm are quite time consuming.
+# and choosing of the algorithm are quite time-consuming.
 # as we were able to predict the prices correctly within a range of roughly 10€ the model seems to be good enough from a
 # domain expert point of view, however none of us are domain experts.
 # from a societal point of view, this model could help avoid unfair increases in prices or unfair pricing compared to
