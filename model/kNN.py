@@ -1,14 +1,9 @@
-import math
-import pandas as pd
-import numpy as np
-import sklearn
 from sklearn.model_selection import train_test_split, KFold, StratifiedShuffleSplit, GridSearchCV
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, roc_auc_score, brier_score_loss
-from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error
 
 
-def fitAndTuneRandomized(X_train, y_train, X_test):
+
+def fitAndTuneKNN(X_train, y_train, X_test):
     # hyperparameters
     k = list(range(1, 90))  # all options for k that should be tried
     parameter_grid = {
@@ -39,25 +34,21 @@ def fitAndTuneRandomized(X_train, y_train, X_test):
 
 
 def getBestModel(feature_group):
-    knn_regressor = None
 
     if feature_group == "all":
-        knn_regressor = KNeighborsRegressor(n_neighbors=3, weights='distance', p=1)
-        return knn_regressor
+        return KNeighborsRegressor(n_neighbors=3, weights='distance', p=1)
     elif feature_group == "spatial":
-        knn_regressor = KNeighborsRegressor(n_neighbors=88, weights='distance', p=1)
+        return KNeighborsRegressor(n_neighbors=88, weights='distance', p=1)
     elif feature_group == "quality":
-        knn_regressor = KNeighborsRegressor(n_neighbors=39, weights='uniform', p=1)
+        return KNeighborsRegressor(n_neighbors=39, weights='uniform', p=1)
     elif feature_group == "basic":
-        knn_regressor = KNeighborsRegressor(n_neighbors=45, weights='distance', p=1)
+        return KNeighborsRegressor(n_neighbors=45, weights='distance', p=1)
     elif feature_group == "spatial_and_basic":
-        knn_regressor = KNeighborsRegressor(n_neighbors=36, weights='distance', p=1)
+        return KNeighborsRegressor(n_neighbors=36, weights='distance', p=1)
     elif feature_group == "quality_and_basic":
-        knn_regressor = KNeighborsRegressor(n_neighbors=38, weights='uniform', p=1)
+        return KNeighborsRegressor(n_neighbors=38, weights='uniform', p=1)
     else:
         print("Unknown feature group")
-
-    return knn_regressor
 
 
 '''
