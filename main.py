@@ -8,6 +8,7 @@ import preprocessing.preprocessing as pre
 import model.kNN as knn
 import model.decisionTree as tree
 import model.neuralnetwork as nn
+import model.lin_reg as lin_regr
 
 # other libraries
 from sklearn.model_selection import train_test_split
@@ -181,16 +182,15 @@ knn_models = [[knn.getBestModel("all"), X_train, y_train, X_test, y_test, "all"]
               X_test_spatial_and_basic, y_test_spatial_and_basic, "spatial+basic"],
              [knn.getBestModel("quality_and_basic"), X_train_quality_and_basic, y_train_quality_and_basic,
               X_test_quality_and_basic, y_test_quality_and_basic, "quality+basic"]]
-# todo anpassen
-"""lin_regr_models = [[nn.getBestModel("all"), X_train, y_train, X_test, y_test, "all"],
-             [lin_regr.getBestModel("spatial"), X_train_spatial, y_train_spatial, X_test_spatial, y_test_spatial, "spatial"],
-             [lin_regr.getBestModel("quality"), X_train_quality, y_train_quality, X_test_quality, y_test_quality, "quality"],
-             [lin_regr.getBestModel("basic"), X_train_basic, y_train_basic, X_test_basic, y_test_basic, "basic"],
-             [lin_regr.getBestModel("spatial_and_basic"), X_train_spatial_and_basic, y_train_spatial_and_basic,
+lin_regr_models = [[lin_regr.linearRegressor(X_train, y_train), X_train, y_train, X_test, y_test, "all"],
+             [lin_regr.linearRegressor(X_train_spatial, y_train_spatial), X_train_spatial, y_train_spatial, X_test_spatial, y_test_spatial, "spatial"],
+             [lin_regr.linearRegressor(X_train_quality, y_train_quality), X_train_quality, y_train_quality, X_test_quality, y_test_quality, "quality"],
+             [lin_regr.linearRegressor(X_train_basic, y_train_basic), X_train_basic, y_train_basic, X_test_basic, y_test_basic, "basic"],
+             [lin_regr.linearRegressor(X_train_spatial_and_basic, y_train_spatial_and_basic), X_train_spatial_and_basic, y_train_spatial_and_basic,
               X_test_spatial_and_basic, y_test_spatial_and_basic, "spatial+basic"],
-             [lin_regr.getBestModel("quality_and_basic"), X_train_quality_and_basic, y_train_quality_and_basic,
-              X_test_quality_and_basic, y_test_quality_and_basic, "quality+basic"]]"""
-models = [nn_models, knn_models, tree_models] # , lin_regr_models] # todo anpassen
+             [lin_regr.linearRegressor(X_train_quality_and_basic, y_train_quality_and_basic), X_train_quality_and_basic, y_train_quality_and_basic,
+              X_test_quality_and_basic, y_test_quality_and_basic, "quality+basic"]]
+models = [nn_models, knn_models, tree_models, lin_regr_models]
 # collect all the predictions
 predictions = collectPredictions(models)
 
@@ -215,8 +215,14 @@ permutation_importance = calculatePermutationImportance(models)
 
 # STEP 5 INTERPRETATION AND DISCUSSION
 # summarize results
-# todo summarize results
 # the dataframes evaluations and permutation_importance contain the most significant summaries
+# best models: knn and tree with spatial and basic features (are they overfit though?)
+# linear regression and nn worked best when using all features
+# linear regression: entire_home and room_private most important
+# nn: distance to city center, distance to metro and restaurant index most important
+# tree: attraction index, longitude, distance to center most important
+# knn: person capacity and bedrooms most important (in the model which trained on spatial and basic dataset)
+# knn: longitude and distance to center most important (in the model which trained on spatial only dataset)
 
 # once the hp optimization is done, the best model can easily be trained on the data and deployed, however the hp tuning
 # and choosing of the algorithm are quite time-consuming.
