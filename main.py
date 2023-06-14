@@ -74,6 +74,10 @@ def calculatePermutationImportance(models):
         for m in model:
             m[0].fit(m[1], m[2])
             r = permutation_importance(m[0], m[3], m[4])
+            '''importances_mean: ndarray of shape (n_features, )
+                Mean of feature importance over n_repeats.
+                importances_std: ndarray of shape (n_features, )
+                Standard deviation over n_repeats.'''
             for i in r.importances_mean.argsort()[::-1]:
                 if r.importances_mean[i] - 2 * r.importances_std[i] > 0:
                     perm_imp_list = [algorithm, m[5], m[1].columns[i], r.importances_mean[i], r.importances_std[i]]
