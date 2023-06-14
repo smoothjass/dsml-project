@@ -20,15 +20,13 @@ import pandas as pd
 
 ########################################################################################################################
 def fitAndTune(X_train, y_train, X_test, features):
-    # todo anpassen
-    # we'll just put y_hat in there for now because we don't have the other models yet
-    y_hat_tree = y_test
-    y_hat_knn = y_test
-    y_hat_lin_regr = y_test
+    y_hat_tree = tree.tree_regressor_with_hp_and_cv(X_train, y_train, X_test)
+    y_hat_knn = knn.fitAndTuneKNN(X_train, y_train, X_test)
+    # y_hat_lin_regr doesn't need to be tuned >> no hp
     y_hat_nn = nn.fitAndTuneRandomized(X_train, y_train, X_test)
 
-    y_hats = [y_hat_tree, y_hat_knn, y_hat_lin_regr, y_hat_nn]
-    models = ['tree', 'knn', 'lin_regr', 'nn']
+    y_hats = [y_hat_tree, y_hat_knn, y_hat_nn]
+    models = ['tree', 'knn', 'nn']
     feature_group = [features, features, features, features]
     dictionary = {'model': models,
                   'y_hat': y_hats,

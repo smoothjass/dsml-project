@@ -113,7 +113,7 @@ def tree_regressor_with_hp_and_cv(X_train, y_train, X_test):
     print("Best score is {}".format(grid_search.best_score_))
     #anlayse_predictions(y_test, prediction)
 
-    return best_model
+    return prediction
 
 def GetBestModel():
     return best_model
