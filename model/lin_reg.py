@@ -28,25 +28,5 @@ def linearRegressor(X_train, y_train):
     # Train the model using the entire training set
     regression_model.fit(X_train, y_train)
 
-    # Make predictions on the test set
-    #y_hat = regression_model.predict(X_test)
-
-    #r2 = r2_score(y_test, y_hat)
-    #mae = mean_absolute_error(y_test, y_hat)
-
-    #print("Mean Squared Error (CV):", mean_mse)
-    #print("Standard Deviation of MSE (CV):", std_mse)
-    #print("R-squared:", r2)
-    #print("Mean Absolute Error:", mae)
 
     return regression_model
-
-'''
-def testLinReg(y_hat, y_test):
-    mse = mean_squared_error(y_test, y_hat)
-    r2 = r2_score(y_test, y_hat)
-    mae = mean_absolute_error(y_test, y_hat)
-    print("Mean Squared Error:", mse)
-    print("R-squared:", r2)
-    print("Mean Absolute Error:", mae)
-'''
