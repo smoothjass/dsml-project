@@ -216,18 +216,21 @@ permutation_importance = calculatePermutationImportance(models)
 # STEP 5 INTERPRETATION AND DISCUSSION
 # summarize results
 # the dataframes evaluations and permutation_importance contain the most significant summaries
-# best models: knn and tree with spatial and basic features (are they overfit though?)
+# best models:
+# knn and tree with spatial and basic features (are they overfit though?)
 # linear regression and nn worked best when using all features
+# most important features
 # linear regression: entire_home and room_private most important
 # nn: distance to city center, distance to metro and restaurant index most important
 # tree: attraction index, longitude, distance to center most important
 # knn: person capacity and bedrooms most important (in the model which trained on spatial and basic dataset)
 # knn: longitude and distance to center most important (in the model which trained on spatial only dataset)
 
-# once the hp optimization is done, the best model can easily be trained on the data and deployed, however the hp tuning
-# and choosing of the algorithm are quite time-consuming.
-# as we were able to predict the prices correctly within a range of roughly 10€ the model seems to be good enough from a
-# domain expert point of view, however none of us are domain experts.
+# once the hp optimization is done, the best model can easily be trained on the data and deployed e.g. on a website,
+# however the hp tuning and choosing of the algorithm are quite time-consuming.
+# as we were able to predict the prices correctly within a range of roughly 10€ (median squared error) or 50€ (root mean
+# squared error) the model seems to be good enough from a domain expert point of view, however none of us are domain
+# experts, and we'd have to get some expert's opinions on this.
 # from a societal point of view, this model could help avoid unfair increases in prices or unfair pricing compared to
 # competitors in general. It could also help people who are just getting started as hosts and don't know how to price
 # their bnb.
